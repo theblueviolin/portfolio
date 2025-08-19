@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Good Morning iMessage Generator</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <h2>🌞 Good Morning Message Generator</h2>
+
+    <label for="phone">Recipient Phone Number:</label>
+    <input type="tel" id="phone" placeholder="+1234567890">
+
+    <select id="savedNumbers" onchange="loadSavedNumber()">
+      <option value="">📇 Select saved number</option>
+    </select>
+
+    <label for="category">Message Style:</label>
+    <select id="category">
+      <option value="sweet">Sweet</option>
+      <option value="funny">Funny</option>
+      <option value="poetic">Poetic</option>
+    </select>
+
+    <button onclick="generateMessage()">Generate & Open iMessage</button>
+
+    <div id="messageLink">
+      <p>👇 Tap below to send:</p>
+      <a id="smsLink" href="#">Open in iMessage</a>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
