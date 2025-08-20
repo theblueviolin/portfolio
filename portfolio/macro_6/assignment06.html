@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Memory Matching Madness</title>
+        <style>
+            body {
+                background-color: black;
+                color: white;
+                text-align: center;
+            }
+            .hidden {
+                display: none;
+            }
+            .show {
+                display: block;
+            }
+            .tile_container {
+                width: 400px;
+                margin: auto;
+            }
+            .tile_container img {
+                width: 100px;
+            }
+
+            .easy_board {
+                width: 300px;
+                margin: auto;
+                grid-template-rows: 3;
+            }
+
+            .medium_board {
+                width: 400px;
+                margin: auto;
+                grid-template-rows: 4;
+            }
+
+            .hard_board {
+                width: 500px;
+                margin: auto;
+                grid-template-rows: 5;
+            }
+            .a {
+                pointer-events: none;
+            }
+
+        </style>
+    </head>
+    <body>
+        <h1>Memory Matching Madness</h1>
+        
+
+
+        <div id="panel_gamestart">
+            <div id="panel_difficulty">
+                <label for="difficulty">Select Difficulty:</label>
+                <select id="difficulty">
+                    <option value="selection">Pick between easy, medium, hard</option>
+                    <option value="easy">Easy (3x4 board)</option>
+                    <option value="medium">Medium (4x5 board)</option>
+                    <option value="hard">Hard (5x6 board)</option>
+                </select>
+             </div>
+            <p>Let's play! click to begin!</p>
+            <button id="button_playgame">Play Game</button>
+        </div>
+        <div id="panel_gameplaying" class="hidden">
+            <div id="timer_container">0 seconds elapsed</div>
+            <div class="tile_container"></div>
+        </div>
+        <div id="panel_gameover" class="hidden">
+            <p>Game over!</p>
+            <p>Your time: 0 sec</p>
+            <p>Best time: 0 sec</p>
+            <p>The person with the highest score:</p>
+        </div>
+
+        <script>
+
+            // DOM queries
+            const panel_gamestart = document.querySelector('#panel_gamestart');
+            const button_playgame = document.querySelector('#button_playgame');
+            const panel_gameplaying = document.querySelector('#panel_gameplaying');
+            const timer_container = document.querySelector('#timer_container');
+            const tile_container = document.querySelector('.tile_container');
+            const panel_gameover = document.querySelector('#panel_gameover');
+            const your_time = document.querySelector('#panel_gameover p:nth-of-type(2)')
+            const best_time = document.querySelector('#panel_gameover p:nth-of-type(3)')
+            let highscore_user = document.querySelector('#panel_gameover p:nth-of-type(4)')
+            var selectElem = document.getElementById('difficulty');
+            let selectedValue;
+            selectElem.addEventListener('change', onSelect_change);
+            //for selecting the difficulty
+            
+            //timer
+            // global variable to keep track of elapsed time
+            let timer = 0;
+            let timerIntervalId;
+            //to keep track of amt of matches
+            let match = 0;
+            //for the best time, set initially to a high value
+            let bestTime = 99999;
+            let name;
+
+            const correctSound = new Audio('correct.mp3');
+            const incorrectSound = new Audio('incorrect.mp3');
+
+
+            let numTiles;
+            //used at like line 255
+            let selectedTiles = []
+            
+
+            let assets = ['snorlax.png', 'electrabuzz.png', 'chansey.png', 'oddish.png',
+                            'pikachu.png', 'paras.png', 'arcanine.png', 'ponita.png',
+                            'venonat.png', 'eggsecute.png', 'machop.png', 'pidgey.png',
+                            'psyduck.png', 'tauros.png', 'vulpix.png', 'gloom.png',
+                            'krabby.png', 'butterfree.png', 'bulbasaur.png', 'clefairy.png',
+                            'koffing.png', 'goldeen.png', 'magikarp.png', 'beedrill.png',
+                            'lapras.png', 'meowth.png', 'ekans.png', 'jigglypuff.png',
+                            'horsea.png', 'polywog.png', 'sandshrew.png', 'rattata.png',
+                            'gengar.png', 'eevee.png', 'bellsprout.png', 'squirtle.png',
+                            'seel.png', 'caterpie.png'];
+
+            function removeAllChildNodes(parent) {
+                while (parent.firstChild) {
+                    parent.removeChild(parent.firstChild);
+                }
+            }
+
+ 
+
+
+            function onSelect_change(domEvent) {
+              var dropdown = domEvent.target;
+              var selectedValue = dropdown.value;
+              localStorage.setItem("selectedValue", selectedValue);
+            
+
+            
+                //remove ALL tiles
+                removeAllChildNodes(tile_container);
+              // get the selected value:
+              selectedValue = domEvent.target[domEvent.target.selectedIndex].value;
+              
+              console.log("Selected: " + selectedValue);
+              if (selectedValue == 'easy') {
+                tile_container.classList.remove('medium_board', 'hard_board');
+                tile_container.classList.add('easy_board');
+                tile_container.style.width = '300px';
+                numTiles = 12;
+                while (selectedTiles.length < numTiles) {
+                    console.log(numTiles)
+                    // pick a random one from the assets array
+                    let i = parseInt( Math.random() * assets.length );
+                    selectedTiles.push( assets[i] );
+                    selectedTiles.push( assets[i] );
+                    assets.splice(i, 1);
+                    }
+    
+   
+              } else if (selectedValue == 'medium') {
+                tile_container.classList.remove('easy_board', 'hard_board');
+                tile_container.classList.add('medium_board');
+                tile_container.style.width = '400px';
+                numTiles = 20;
+                while (selectedTiles.length < numTiles) {
+                    console.log(numTiles)
+                    // pick a random one from the assets array
+                    let i = parseInt( Math.random() * assets.length );
+                    selectedTiles.push( assets[i] );
+                    selectedTiles.push( assets[i] );
+                    assets.splice(i, 1);
+                    }
+
+              } else if (selectedValue == 'hard') {
+                tile_container.classList.remove('easy_board', 'medium_board');
+                tile_container.classList.add('hard_board');
+                tile_container.style.width = '500px';
+                numTiles = 30;
+                while (selectedTiles.length < numTiles) {
+                    console.log(numTiles)
+                    // pick a random one from the assets array
+                    let i = parseInt( Math.random() * assets.length );
+                    selectedTiles.push( assets[i] );
+                    selectedTiles.push( assets[i] );
+                    assets.splice(i, 1);
+                    }
+              }
+              console.log('test that onSelect function runs each time')
+             
+
+              
+            }
+
+            function startTimer() {
+              let timerIntervalId = setInterval(function() {
+                timer++;
+                timer_container.innerHTML = timer + " seconds elapsed";
+                //this is when the game ends
+                let maxMatches = numTiles / 2;
+                console.log(maxMatches)
+                if (match >= maxMatches){
+                    clearInterval(timerIntervalId);
+                    your_time.innerHTML = 'Your time: ' + timer + ' seconds';
+
+
+                // check if this is the best time
+                    if (timer < bestTime) {
+                      bestTime = timer;
+                      localStorage.setItem('bestTime', bestTime);
+                      user_best_time = localStorage.getItem('bestTime');
+                      best_time.innerHTML = 'Best time: ' + bestTime + ' seconds';
+                //if it is their best time, allow the user to enter their name 
+                    const name = prompt("Congratulations! You got a new high score. Enter your name:");
+
+                     alert(`New high score set by ${name}!`);
+                     highscore_user.innerHTML = name + ' is the current highscore holder!';
+
+
+                    }
+                // hide playing panel, show game over panel
+                
+                panel_gameover.classList.remove('hidden');
+                
+                panel_gamestart.classList.remove('hidden')
+                panel_gameplaying.classList.add('hidden');
+                resetGame();
+                }
+              }, 1000);
+            }
+
+            // global variables to keep track of our picked tiles
+            let tile1 = false;
+            let tile2 = false;
+
+            button_playgame.onclick = function(e) {
+                panel_gamestart.classList.add('hidden');
+                panel_gameplaying.classList.remove('hidden');
+                //hide the game over panel
+                panel_gameover.classList.add('hidden')
+                startTimer();
+
+               
+
+                // you need to randomize these tiles so they are all messed up
+                function shuffle(selectedTiles) {
+                  let currentIndex = selectedTiles.length,  randomIndex;
+
+                  // While there remain elements to shuffle.
+                  while (currentIndex != 0) {
+
+                    // Pick a remaining element.
+                    randomIndex = Math.floor(Math.random() * currentIndex);
+                    currentIndex--;
+
+                    // And swap it with the current element.
+                    [selectedTiles[currentIndex], selectedTiles[randomIndex]] = [
+                      selectedTiles[randomIndex], selectedTiles[currentIndex]];
+                  }
+
+                  return selectedTiles;
+                }
+//uncomment to shuffle
+
+                shuffle(selectedTiles);
+                // console.log(selectedTiles)
+
+                for (let i = 0; i < selectedTiles.length; i++) {
+            //keep rest of code since that has to run each time you play again
+                    // create a tile
+                    let tile = document.createElement('img');
+                    tile.src = 'assignment06_images/pokeball.png';
+                    tile.dataset.secret = 'assignment06_images/' + selectedTiles[i];
+                    tile_container.appendChild(tile);
+                    
+                    // set up event listeners on each tile
+                    tile.onclick = function(event) {
+                    
+
+                        // have no tiles been clicked?
+                        if (tile1 == false && tile2 == false) {
+                            // reveal tile 1
+
+                            // switch graphics
+                            event.currentTarget.src = event.currentTarget.dataset.secret;
+
+                            // mark this as tile1
+                            tile1 = event.currentTarget;
+                 
+                            
+                        }
+                        else if (tile2 == false) {
+                            // reveal this tile
+
+                            // switch graphics
+                            event.currentTarget.src = event.currentTarget.dataset.secret;
+
+                            // mark this as tile2
+                            tile2 = event.currentTarget;
+                   
+                            // did they get it right?
+                            if (tile1.dataset.secret == tile2.dataset.secret) {
+                                // reset the game back to the original state and allow more clicks
+                                tile1 = false;
+                                tile2 = false;
+                                console.log("MATCH");
+                                match += 1
+                               
+                              
+                              
+                                correctSound.play();
+
+                            }
+                            else {
+                            
+                                incorrectSound.play();
+                                // they got it wrong
+                                setTimeout(function() {
+                                    tile1.src = 'assignment06_images/pokeball.png';
+                                    tile2.src = 'assignment06_images/pokeball.png';
+                                    tile1 = false;
+                                    tile2 = false;
+                                  
+                                }, 1000);
+                            }
+                        }
+
+
+
+                        //tile.src = tile.dataset.secret;
+                    }
+                }
+                //all tiles should have been created
+                console.log(tile_container)
+
+            }
+            function resetGame() {
+              // reset the timer
+              clearInterval(timerIntervalId);
+              timer = 0;
+              timer_container.innerHTML = '0 seconds elapsed';
+
+              // reset the match count
+              match = 0;
+
+              // reset the picked tiles
+              tile1 = false;
+              tile2 = false;
+
+              // remove all the tiles from the tile_container
+              tile_container.innerHTML = '';
+
+              // hide the game over panel
+              // panel_gameover.classList.add('hidden');
+
+              // show the game start panel
+              localStorage.setItem("playerName", name);
+                highscore_user = localStorage.getItem('playerName')
+                highscore_user.innerHTML = 'The person with the highscore is: ' + name;
+              panel_gamestart.classList.remove('hidden');
+            } 
+        </script>
+    </body>
+</html>
